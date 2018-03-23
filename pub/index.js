@@ -71,9 +71,9 @@ function init() {
 	var material = new THREE.MeshBasicMaterial({
 		map: wood
 	});
-	var board = new THREE.Mesh(new THREE.BoxGeometry(350, 350, 10), material);
-	board.position.set(0, 0, -155);
-	scene.add(board);
+	var base = new THREE.Mesh(new THREE.BoxGeometry(350, 350, 10), material);
+	base.position.set(0, 0, -155);
+	scene.add(base);
 
 
 	raycaster = new THREE.Raycaster();
