@@ -37,21 +37,23 @@ function init() {
 	light.position.set(1, 1, 1).normalize();
 	scene.add(light);
 
-	lightwood = new THREE.TextureLoader().load( 'textures/lightwood1024.jpg' );
-	darkwood = new THREE.TextureLoader().load( 'textures/darkwood1024.jpg' );
-	reddarkwood = new THREE.TextureLoader().load( 'textures/reddarkwood1024.jpg' );
-	wood = new THREE.TextureLoader().load( 'textures/wood1024.jpg' );
+	lightwood = new THREE.TextureLoader().load('textures/lightwood1024.jpg');
+	darkwood = new THREE.TextureLoader().load('textures/darkwood1024.jpg');
+	reddarkwood = new THREE.TextureLoader().load('textures/reddarkwood1024.jpg');
+	wood = new THREE.TextureLoader().load('textures/wood1024.jpg');
 
 
 	for (var i = 0; i <= 3; i++) {
 		board[i] = [];
 		for (var j = 0; j <= 3; j++) {
 			board[i][j] = 0;
-			var material = new THREE.MeshBasicMaterial( { map: darkwood } );
+			var material = new THREE.MeshBasicMaterial({
+				map: darkwood
+			});
 			var pole = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 300, 64, 5), material);
-			pole.position.set(-150 + 100 * i, -150 + 100 * j,0);
-			pole.rotation.x = Math.PI/2
-			pole.name=`Pole ${i}:${j}`
+			pole.position.set(-150 + 100 * i, -150 + 100 * j, 0);
+			pole.rotation.x = Math.PI / 2
+			pole.name = `Pole ${i}:${j}`
 			pole.is_pole = true;
 			pole.numx = i;
 			pole.numy = j;
@@ -62,15 +64,19 @@ function init() {
 
 	// Board
 
-	var material = new THREE.MeshBasicMaterial( { map: wood } );
-	var object = new THREE.Mesh(new THREE.BoxGeometry(350,350,10), material);
-	object.position.set(0, 0, -155);
-	scene.add(object);
+	var material = new THREE.MeshBasicMaterial({
+		map: wood
+	});
+	var board = new THREE.Mesh(new THREE.BoxGeometry(350, 350, 10), material);
+	board.position.set(0, 0, -155);
+	scene.add(board);
 
 
 	raycaster = new THREE.Raycaster();
 
-	renderer = new THREE.WebGLRenderer();
+	renderer = new THREE.WebGLRenderer({
+		antialias: true
+	});
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	container.appendChild(renderer.domElement);
@@ -109,7 +115,7 @@ function onDocumentMouseClick(event) {
 		var i = INTERSECTED.numx;
 		var j = INTERSECTED.numy;
 		if (board[i][j] < 4) {
-			createBall(i,j,board[i][j]++)
+			createBall(i, j, board[i][j]++)
 			turn = 1 - turn;
 		}
 
@@ -117,16 +123,18 @@ function onDocumentMouseClick(event) {
 }
 
 
-function createBall(i,j,n) {
+function createBall(i, j, n) {
 	var texture;
-	if(turn == 1) {
+	if (turn == 1) {
 		texture = darkwood;
 	} else {
 		texture = lightwood;
 	}
-	var material = new THREE.MeshBasicMaterial( { map: texture } );
-	var object = new THREE.Mesh(new THREE.SphereGeometry(35,32,32), material);
-	object.position.set(-150 + 100 * i, -150 + 100 * j,-150+34+68*n);
+	var material = new THREE.MeshBasicMaterial({
+		map: texture
+	});
+	var object = new THREE.Mesh(new THREE.SphereGeometry(35, 32, 32), material);
+	object.position.set(-150 + 100 * i, -150 + 100 * j, -150 + 34 + 68 * n);
 	scene.add(object);
 }
 
