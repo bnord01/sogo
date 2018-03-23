@@ -1,5 +1,9 @@
-var container, stats;
+var container, controls, stats;
 var camera, scene, raycaster, renderer;
+var lightwood, darkwood, reddarkwood, wood;
+var poles = [];
+var board = [];
+var turn = 1;
 
 var mouse = new THREE.Vector2(),
 	INTERSECTED;
@@ -15,6 +19,16 @@ function init() {
 	document.body.appendChild(container);
 
 	camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+	camera.position.z = 1000;
+
+	controls = new THREE.TrackballControls(camera);
+	controls.rotateSpeed = 1.0;
+	controls.zoomSpeed = 1.2;
+	controls.panSpeed = 0.8;
+	controls.noZoom = false;
+	controls.noPan = false;
+	controls.staticMoving = true;
+	controls.dynamicDampingFactor = 0.3;
 
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color(0xf0f0f0);
@@ -23,29 +37,36 @@ function init() {
 	light.position.set(1, 1, 1).normalize();
 	scene.add(light);
 
-	var geometry = new THREE.BoxBufferGeometry(20, 20, 20);
+	lightwood = new THREE.TextureLoader().load( 'textures/lightwood1024.jpg' );
+	darkwood = new THREE.TextureLoader().load( 'textures/darkwood1024.jpg' );
+	reddarkwood = new THREE.TextureLoader().load( 'textures/reddarkwood1024.jpg' );
+	wood = new THREE.TextureLoader().load( 'textures/wood1024.jpg' );
 
-	for (var i = 0; i < 2000; i++) {
 
-		var object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
-			color: Math.random() * 0xffffff
-		}));
-
-		object.position.x = Math.random() * 800 - 400;
-		object.position.y = Math.random() * 800 - 400;
-		object.position.z = Math.random() * 800 - 400;
-
-		object.rotation.x = Math.random() * 2 * Math.PI;
-		object.rotation.y = Math.random() * 2 * Math.PI;
-		object.rotation.z = Math.random() * 2 * Math.PI;
-
-		object.scale.x = Math.random() + 0.5;
-		object.scale.y = Math.random() + 0.5;
-		object.scale.z = Math.random() + 0.5;
-
-		scene.add(object);
-
+	for (var i = 0; i <= 3; i++) {
+		board[i] = [];
+		for (var j = 0; j <= 3; j++) {
+			board[i][j] = 0;
+			var material = new THREE.MeshBasicMaterial( { map: darkwood } );
+			var pole = new THREE.Mesh(new THREE.CylinderGeometry(10, 10, 300, 64, 5), material);
+			pole.position.set(-150 + 100 * i, -150 + 100 * j,0);
+			pole.rotation.x = Math.PI/2
+			pole.name=`Pole ${i}:${j}`
+			pole.is_pole = true;
+			pole.numx = i;
+			pole.numy = j;
+			scene.add(pole);
+			poles.push(pole);
+		}
 	}
+
+	// Board
+
+	var material = new THREE.MeshBasicMaterial( { map: wood } );
+	var object = new THREE.Mesh(new THREE.BoxGeometry(350,350,10), material);
+	object.position.set(0, 0, -155);
+	scene.add(object);
+
 
 	raycaster = new THREE.Raycaster();
 
@@ -56,7 +77,7 @@ function init() {
 
 	document.addEventListener('mousemove', onDocumentMouseMove, false);
 
-	//
+	document.addEventListener('click', onDocumentMouseClick, false);
 
 	window.addEventListener('resize', onWindowResize, false);
 
@@ -80,6 +101,35 @@ function onDocumentMouseMove(event) {
 
 }
 
+function onDocumentMouseClick(event) {
+
+	event.preventDefault();
+
+	if (INTERSECTED && INTERSECTED.is_pole) {
+		var i = INTERSECTED.numx;
+		var j = INTERSECTED.numy;
+		if (board[i][j] < 4) {
+			createBall(i,j,board[i][j]++)
+			turn = 1 - turn;
+		}
+
+	}
+}
+
+
+function createBall(i,j,n) {
+	var texture;
+	if(turn == 1) {
+		texture = darkwood;
+	} else {
+		texture = lightwood;
+	}
+	var material = new THREE.MeshBasicMaterial( { map: texture } );
+	var object = new THREE.Mesh(new THREE.SphereGeometry(35,32,32), material);
+	object.position.set(-150 + 100 * i, -150 + 100 * j,-150+34+68*n);
+	scene.add(object);
+}
+
 //
 
 function animate() {
@@ -90,42 +140,37 @@ function animate() {
 
 }
 
-function render() {
-
-	theta += 0.1;
-
-	camera.position.x = radius * Math.sin(THREE.Math.degToRad(theta));
-	camera.position.y = radius * Math.sin(THREE.Math.degToRad(theta));
-	camera.position.z = radius * Math.cos(THREE.Math.degToRad(theta));
-	camera.lookAt(scene.position);
-
-	camera.updateMatrixWorld();
-
-	// find intersections
-
+function pick() {
 	raycaster.setFromCamera(mouse, camera);
 
-	var intersects = raycaster.intersectObjects(scene.children);
+	var intersects = raycaster.intersectObjects(poles);
 
 	if (intersects.length > 0) {
 
 		if (INTERSECTED != intersects[0].object) {
 
-			if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+			if (INTERSECTED) INTERSECTED.material.map = darkwood;
 
 			INTERSECTED = intersects[0].object;
-			INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-			INTERSECTED.material.emissive.setHex(0xff0000);
+			INTERSECTED.material.map = reddarkwood;
 
 		}
 
 	} else {
 
-		if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+		if (INTERSECTED) INTERSECTED.material.map = darkwood;
 
 		INTERSECTED = null;
 
 	}
+
+}
+
+function render() {
+
+	controls.update();
+
+	pick();
 
 	renderer.render(scene, camera);
 

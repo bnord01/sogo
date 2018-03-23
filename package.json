@@ -1,7 +1,7 @@
 {
-  "name": "kizdar",
+  "name": "sogo",
   "version": "0.1.0",
-  "description": "Kizomba Radar",
+  "description": "Does sogo",
   "private": true,
   "scripts": {
     "start": "node --harmony server.js",
@@ -12,16 +12,13 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "body-parser": "^1.14.1",
-    "bower": "^1.8.0",
+    "bower": "^1.8.2",
     "es6-promisify": "^6.0.0",
     "express": "^4.13.3",
-    "moment-timezone": "^0.5.13",
-    "redis": "^2.7.1",
     "request": "^2.64.0",
-    "validator": "^9.4.1",
-    "web-push": "^3.2.2"
+    "validator": "^9.4.1"
   },
   "engines": {
-    "node": "^6.11.1"
+    "node": "^8.10.0"
   }
 }
