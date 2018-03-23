@@ -1,198 +1,132 @@
 var container, stats;
-var camera, controls, scene, renderer;
-var pickingData = [], pickingTexture, pickingScene;
-var objects = [];
-var highlightBox;
+var camera, scene, raycaster, renderer;
 
-var mouse = new THREE.Vector2();
-var offset = new THREE.Vector3( 10, 10, 10 );
+var mouse = new THREE.Vector2(),
+	INTERSECTED;
+var radius = 100,
+	theta = 0;
 
 init();
 animate();
 
 function init() {
 
-	container = document.getElementById( "container" );
+	container = document.createElement('div');
+	document.body.appendChild(container);
 
-	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.z = 1000;
-
-	controls = new THREE.TrackballControls( camera );
-	controls.rotateSpeed = 1.0;
-	controls.zoomSpeed = 1.2;
-	controls.panSpeed = 0.8;
-	controls.noZoom = false;
-	controls.noPan = false;
-	controls.staticMoving = true;
-	controls.dynamicDampingFactor = 0.3;
+	camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
 
 	scene = new THREE.Scene();
-	scene.background = new THREE.Color( 0xffffff );
+	scene.background = new THREE.Color(0xf0f0f0);
 
-	pickingScene = new THREE.Scene();
-	pickingTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight );
-	pickingTexture.texture.minFilter = THREE.LinearFilter;
+	var light = new THREE.DirectionalLight(0xffffff, 1);
+	light.position.set(1, 1, 1).normalize();
+	scene.add(light);
 
-	scene.add( new THREE.AmbientLight( 0x555555 ) );
+	var geometry = new THREE.BoxBufferGeometry(20, 20, 20);
 
-	var light = new THREE.SpotLight( 0xffffff, 1.5 );
-	light.position.set( 0, 500, 2000 );
-	scene.add( light );
+	for (var i = 0; i < 2000; i++) {
 
-	var geometry = new THREE.Geometry(),
-	pickingGeometry = new THREE.Geometry(),
-	pickingMaterial = new THREE.MeshBasicMaterial( { vertexColors: THREE.VertexColors } ),
-	defaultMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true, vertexColors: THREE.VertexColors, shininess: 0	} );
+		var object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+			color: Math.random() * 0xffffff
+		}));
 
-	function applyVertexColors( g, c ) {
+		object.position.x = Math.random() * 800 - 400;
+		object.position.y = Math.random() * 800 - 400;
+		object.position.z = Math.random() * 800 - 400;
 
-		g.faces.forEach( function( f ) {
+		object.rotation.x = Math.random() * 2 * Math.PI;
+		object.rotation.y = Math.random() * 2 * Math.PI;
+		object.rotation.z = Math.random() * 2 * Math.PI;
 
-			var n = ( f instanceof THREE.Face3 ) ? 3 : 4;
+		object.scale.x = Math.random() + 0.5;
+		object.scale.y = Math.random() + 0.5;
+		object.scale.z = Math.random() + 0.5;
 
-			for( var j = 0; j < n; j ++ ) {
-
-				f.vertexColors[ j ] = c;
-
-			}
-
-		} );
+		scene.add(object);
 
 	}
 
-	var geom = new THREE.BoxGeometry( 1, 1, 1 );
-	var color = new THREE.Color();
+	raycaster = new THREE.Raycaster();
 
-	var matrix = new THREE.Matrix4();
-	var quaternion = new THREE.Quaternion();
+	renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	container.appendChild(renderer.domElement);
 
-	for ( var i = 0; i < 5000; i ++ ) {
+	document.addEventListener('mousemove', onDocumentMouseMove, false);
 
-		var position = new THREE.Vector3();
-		position.x = Math.random() * 10000 - 5000;
-		position.y = Math.random() * 6000 - 3000;
-		position.z = Math.random() * 8000 - 4000;
+	//
 
-		var rotation = new THREE.Euler();
-		rotation.x = Math.random() * 2 * Math.PI;
-		rotation.y = Math.random() * 2 * Math.PI;
-		rotation.z = Math.random() * 2 * Math.PI;
+	window.addEventListener('resize', onWindowResize, false);
 
-		var scale = new THREE.Vector3();
-		scale.x = Math.random() * 200 + 100;
-		scale.y = Math.random() * 200 + 100;
-		scale.z = Math.random() * 200 + 100;
+}
 
-		quaternion.setFromEuler( rotation, false );
-		matrix.compose( position, quaternion, scale );
+function onWindowResize() {
 
-		// give the geom's vertices a random color, to be displayed
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
 
-		applyVertexColors( geom, color.setHex( Math.random() * 0xffffff ) );
+	renderer.setSize(window.innerWidth, window.innerHeight);
 
-		geometry.merge( geom, matrix );
+}
 
-		// give the geom's vertices a color corresponding to the "id"
+function onDocumentMouseMove(event) {
 
-		applyVertexColors( geom, color.setHex( i ) );
+	event.preventDefault();
 
-		pickingGeometry.merge( geom, matrix );
-
-		pickingData[ i ] = {
-
-			position: position,
-			rotation: rotation,
-			scale: scale
-
-		};
-
-	}
-
-	var drawnObject = new THREE.Mesh( geometry, defaultMaterial );
-	scene.add( drawnObject );
-
-	pickingScene.add( new THREE.Mesh( pickingGeometry, pickingMaterial ) );
-
-	highlightBox = new THREE.Mesh(
-		new THREE.BoxGeometry( 1, 1, 1 ),
-		new THREE.MeshLambertMaterial( { color: 0xffff00 }
-	) );
-	scene.add( highlightBox );
-
-	renderer = new THREE.WebGLRenderer( { antialias: true } );
-	renderer.setPixelRatio( window.devicePixelRatio );
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	container.appendChild( renderer.domElement );
-
-	stats = new Stats();
-	container.appendChild( stats.dom );
-
-	renderer.domElement.addEventListener( 'mousemove', onMouseMove );
+	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
 }
 
 //
 
-function onMouseMove( e ) {
-
-	mouse.x = e.clientX;
-	mouse.y = e.clientY;
-
-}
-
 function animate() {
 
-	requestAnimationFrame( animate );
+	requestAnimationFrame(animate);
 
 	render();
-	stats.update();
-
-}
-
-function pick() {
-
-	//render the picking scene off-screen
-
-	renderer.render( pickingScene, camera, pickingTexture );
-
-	//create buffer for reading single pixel
-	var pixelBuffer = new Uint8Array( 4 );
-
-	//read the pixel under the mouse from the texture
-	renderer.readRenderTargetPixels(pickingTexture, mouse.x, pickingTexture.height - mouse.y, 1, 1, pixelBuffer);
-
-	//interpret the pixel as an ID
-
-	var id = ( pixelBuffer[0] << 16 ) | ( pixelBuffer[1] << 8 ) | ( pixelBuffer[2] );
-	var data = pickingData[ id ];
-
-	if ( data) {
-
-		//move our highlightBox so that it surrounds the picked object
-
-		if ( data.position && data.rotation && data.scale ){
-
-			highlightBox.position.copy( data.position );
-			highlightBox.rotation.copy( data.rotation );
-			highlightBox.scale.copy( data.scale ).add( offset );
-			highlightBox.visible = true;
-
-		}
-
-	} else {
-
-		highlightBox.visible = false;
-
-	}
 
 }
 
 function render() {
 
-	controls.update();
+	theta += 0.1;
 
-	pick();
+	camera.position.x = radius * Math.sin(THREE.Math.degToRad(theta));
+	camera.position.y = radius * Math.sin(THREE.Math.degToRad(theta));
+	camera.position.z = radius * Math.cos(THREE.Math.degToRad(theta));
+	camera.lookAt(scene.position);
 
-	renderer.render( scene, camera );
+	camera.updateMatrixWorld();
+
+	// find intersections
+
+	raycaster.setFromCamera(mouse, camera);
+
+	var intersects = raycaster.intersectObjects(scene.children);
+
+	if (intersects.length > 0) {
+
+		if (INTERSECTED != intersects[0].object) {
+
+			if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+			INTERSECTED = intersects[0].object;
+			INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+			INTERSECTED.material.emissive.setHex(0xff0000);
+
+		}
+
+	} else {
+
+		if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+		INTERSECTED = null;
+
+	}
+
+	renderer.render(scene, camera);
 
 }
