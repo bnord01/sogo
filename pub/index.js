@@ -1,14 +1,10 @@
-var container, controls, stats;
+var container, controls;
 var camera, scene, raycaster, renderer;
 var lightwood, darkwood, reddarkwood, wood;
-var poles = [];
-var board = [];
-var turn = 1;
+var poles, board, turn;
 
-var mouse = new THREE.Vector2(),
-	INTERSECTED;
-var radius = 100,
-	theta = 0;
+var mouse;
+var INTERSECTED;
 
 init();
 animate();
@@ -30,6 +26,8 @@ function init() {
 	controls.staticMoving = true;
 	controls.dynamicDampingFactor = 0.3;
 
+	mouse = new THREE.Vector2();
+
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color(0xf0f0f0);
 
@@ -41,6 +39,10 @@ function init() {
 	darkwood = new THREE.TextureLoader().load('textures/darkwood1024.jpg');
 	reddarkwood = new THREE.TextureLoader().load('textures/reddarkwood1024.jpg');
 	wood = new THREE.TextureLoader().load('textures/wood1024.jpg');
+
+	board = [];
+	poles = [];
+	turn = 1;
 
 
 	for (var i = 0; i <= 3; i++) {
