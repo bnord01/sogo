@@ -5,14 +5,8 @@ var bodyParser = require('body-parser');
 var app = express();
 app.use(bodyParser.json());
 
+app.use(express.static(__dirname + '/dist'));
 
-// Serve public content
-app.use(express.static(__dirname + '/pub'));
-
-// Serve bower components
-app.use('/libs', express.static(__dirname + '/bower_components'));
-
-// Listen on the port given by heroku
 var port = process.env.PORT || 3003;
 var ready = new Promise(function willListen(resolve, reject) {
     app.listen(port, function didListen(err) {

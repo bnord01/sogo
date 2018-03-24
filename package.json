@@ -5,20 +5,26 @@
   "private": true,
   "scripts": {
     "start": "node --harmony server.js",
-    "postinstall": "bower install"
+    "postinstall": "webpack --mode production",
+    "build": "webpack --mode development"
   },
   "author": "Benedikt Nordhoff (bnord01@gmail.com)",
   "license": "MIT",
   "dependencies": {
-    "bluebird": "^3.5.0",
-    "body-parser": "^1.14.1",
-    "bower": "^1.8.2",
-    "es6-promisify": "^6.0.0",
     "express": "^4.13.3",
-    "request": "^2.64.0",
-    "validator": "^9.4.1"
+    "three": "^0.91.0"
   },
   "engines": {
     "node": "^8.10.0"
+  },
+  "devDependencies": {
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.6.1",
+    "clean-webpack-plugin": "^0.1.19",
+    "file-loader": "^1.1.11",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.1.0",
+    "webpack": "^4.2.0",
+    "webpack-cli": "^2.0.13"
   }
 }
