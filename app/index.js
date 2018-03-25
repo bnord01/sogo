@@ -13,16 +13,12 @@ var io = require('socket.io-client')
 
 var socket = io.connect(location.origin)
 socket.on('move', move => {
-	console.log(`Received move: ${JSON.stringify(move)}`)
-
 	var i = move.i,
 		j = move.j,
 		n = move.n;
 	board[i][j] = n + 1
 	turn = 1 - turn;
 	createBall(i, j, n)
-	console.log(`Made move: ${i} ${j} ${n}`)
-
 })
 
 
@@ -124,15 +120,13 @@ function init() {
 
 	window.addEventListener('resize', onWindowResize, false);
 
-}
+} // End init()
 
 function onWindowResize() {
-
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
 
 	renderer.setSize(window.innerWidth, window.innerHeight);
-
 }
 
 
@@ -141,11 +135,12 @@ function onDocumentMouseDown(event) {
 }
 
 function onDocumentMouseMove(event) {
-	var oldx = mouse.x, oldy = mouse.y;
+	var oldx = mouse.x,
+		oldy = mouse.y;
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-	if(oldx != mouse.x || oldy != mouse.y) {
+	if (oldx != mouse.x || oldy != mouse.y) {
 		mouse_moved = true;
 	}
 	mouse_valid = true;
@@ -159,8 +154,7 @@ function onDocumentTouchStart(event) {
 	unpick();
 }
 
-function onDocumentTouchEnd(event) {
-}
+function onDocumentTouchEnd(event) {}
 
 function onDocumentTouchCancel(event) {
 	is_touch = false;
@@ -184,7 +178,6 @@ function makeMove() {
 		var i = INTERSECTED.numx;
 		var j = INTERSECTED.numy;
 		if (board[i][j] < 4) {
-			console.log(`Making move`)
 			socket.emit('move', {
 				i: i,
 				j: j,
@@ -195,7 +188,6 @@ function makeMove() {
 }
 
 function createBall(i, j, n) {
-
 	var material = new THREE.MeshBasicMaterial({
 		map: turn == 1 ? darkwood : lightwood
 	});
@@ -204,18 +196,15 @@ function createBall(i, j, n) {
 	ball.position.set(-150 + 100 * i, -150 + 34 + 68 * n, -150 + 100 * j);
 	ball.rotation.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
 	scene.add(ball);
-
 }
 
 
 function animate() {
-
 	requestAnimationFrame(animate);
 
 	controls.update();
 
 	render();
-
 }
 
 function unpick() {
@@ -226,7 +215,6 @@ function unpick() {
 }
 
 function pick() {
-
 	raycaster.setFromCamera(mouse, camera);
 
 	var intersects = raycaster.intersectObjects(poles);
@@ -241,16 +229,13 @@ function pick() {
 	} else {
 		unpick();
 	}
-
 }
 
 
 function render() {
-
 	if (!is_touch && mouse_valid) {
 		pick();
 	}
 
 	renderer.render(scene, camera);
-
 }
