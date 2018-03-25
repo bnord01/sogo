@@ -1,13 +1,29 @@
+"use strict";
+
 import lightwoodtexture from './textures/lightwood1024.jpg';
 import darkwoodtexture from './textures/darkwood1024.jpg';
 import woodtexture from './textures/wood1024.jpg';
 import reddarkwoodtexture from './textures/reddarkwood1024.jpg';
 
-import 'three';
-
 import './lib/OrbitControls.js';
 
-"use strict";
+var THREE = require('three')
+var io = require('socket.io-client')
+
+
+var socket = io.connect(location.origin)
+socket.on('move', move => {
+	console.log(`Received move: ${JSON.stringify(move)}`)
+
+	var i = move.i,
+		j = move.j,
+		n = move.n;
+	board[i][j] = n + 1
+	turn = 1 - turn;
+	createBall(i, j, n)
+	console.log(`Made move: ${i} ${j} ${n}`)
+
+})
 
 
 var container, controls;
@@ -119,32 +135,24 @@ function onWindowResize() {
 
 }
 
+
+function onDocumentMouseDown(event) {
+	mouse_moved = false;
+}
+
 function onDocumentMouseMove(event) {
-	console.log("Mouse move")
-	event.preventDefault();
-
 	var oldx = mouse.x, oldy = mouse.y;
-
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
 	if(oldx != mouse.x || oldy != mouse.y) {
 		mouse_moved = true;
-	}	
+	}
 	mouse_valid = true;
-
 }
 
-function onDocumentMouseDown(event) {
-	console.log("Mouse down")
-	event.preventDefault();
-
-	mouse_moved = false;
-
-}
 
 function onDocumentTouchStart(event) {
-	console.log("Touch Start")
 	last_intersected = INTERSECTED;
 	is_touch = true;
 	mouse_valid = false;
@@ -152,39 +160,23 @@ function onDocumentTouchStart(event) {
 }
 
 function onDocumentTouchEnd(event) {
-	console.log("Touch end")
 }
 
 function onDocumentTouchCancel(event) {
-	console.log("Touch cancel")
 	is_touch = false;
 }
 
-function onDocumentMouseDown(event) {
-
-	console.log("Mouse down")
-	event.preventDefault();
-
-	mouse_moved = false;
-
-}
-
 function onDocumentMouseUp(event) {
-
-	console.log("Mouse up")
-	event.preventDefault();
-
 	pick();
 	if (!mouse_moved && (!is_touch || INTERSECTED == last_intersected)) {
 		makeMove();
-		if(is_touch) {
+		if (is_touch) {
 			mouse_valid = false;
 			unpick();
 		}
 	}
 
 	is_touch = false;
-
 }
 
 function makeMove() {
@@ -192,8 +184,12 @@ function makeMove() {
 		var i = INTERSECTED.numx;
 		var j = INTERSECTED.numy;
 		if (board[i][j] < 4) {
-			createBall(i, j, board[i][j]++)
-			turn = 1 - turn;
+			console.log(`Making move`)
+			socket.emit('move', {
+				i: i,
+				j: j,
+				n: board[i][j]
+			})
 		}
 	}
 }

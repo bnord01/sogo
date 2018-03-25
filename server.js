@@ -1,23 +1,34 @@
 'use strict';
 
 var express = require('express');
-var bodyParser = require('body-parser');
+var socket = require('socket.io');
+
 var app = express();
-app.use(bodyParser.json());
 
 app.use(express.static(__dirname + '/dist'));
 
 var port = process.env.PORT || 3003;
 var ready = new Promise(function willListen(resolve, reject) {
-    app.listen(port, function didListen(err) {
+    var server = app.listen(port, function didListen(err) {
         if (err) {
             reject(err);
             return;
         }
         console.log('app.listen on http://localhost:%d', port);
-        resolve();
+        resolve(server);
     });
 });
+
+ready.then(server => {
+    var io = socket(server);
+    io.on('connection',socket => {
+        console.log(`Connection established to ${socket.id}`)
+        socket.on('move',data => {
+            console.log(`Move by ${socket.id} : ${JSON.stringify(data)}`)
+            io.sockets.emit('move',data)
+        })
+    })
+})
 
 exports.ready = ready;
 exports.app = app;
