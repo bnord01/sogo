@@ -123,10 +123,14 @@ function onDocumentMouseMove(event) {
 	console.log("Mouse move")
 	event.preventDefault();
 
+	var oldx = mouse.x, oldy = mouse.y;
+
 	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
 	mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-	mouse_moved = true;
+	if(oldx != mouse.x || oldy != mouse.y) {
+		mouse_moved = true;
+	}	
 	mouse_valid = true;
 
 }
@@ -174,7 +178,7 @@ function onDocumentMouseUp(event) {
 	if (!mouse_moved && (!is_touch || INTERSECTED == last_intersected)) {
 		makeMove();
 		if(is_touch) {
-			mouse_valid = false;			
+			mouse_valid = false;
 			unpick();
 		}
 	}
