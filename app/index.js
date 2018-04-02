@@ -178,11 +178,15 @@ function makeMove() {
 		var i = INTERSECTED.numx;
 		var j = INTERSECTED.numy;
 		if (board[i][j] < 4) {
+			var n = board[i][j]
 			socket.emit('move', {
 				i: i,
 				j: j,
-				n: board[i][j]
+				n: n
 			})
+			turn = 1 - turn
+			board[i][j]= n + 1
+			createBall(i, j, n)
 		}
 	}
 }

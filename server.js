@@ -25,7 +25,7 @@ ready.then(server => {
         console.log(`Connection established to ${socket.id}`)
         socket.on('move',data => {
             console.log(`Move by ${socket.id} : ${JSON.stringify(data)}`)
-            io.sockets.emit('move',data)
+            socket.broadcast.emit('move',data)
         })
     })
 })
