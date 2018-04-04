@@ -2,7 +2,7 @@ from sogo import valid_moves
 
 import numpy as np
 
-from keras.models import model_from_json
+from tensorflow.python.keras.models import model_from_json
 
 def make_player(path):
     with open(f"{path}.json", 'r') as file:

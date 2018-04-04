@@ -2,14 +2,13 @@ from sogo import valid_moves, move_wins
 
 import numpy as np
 
-from keras.models import model_from_json
+from tensorflow.python.keras.models import model_from_json
 
 class Play:
 
     def __init__(self,path):
         self.model = self.make_player(path)
-        self.white = np.zeros((4,4,4))
-        self.black = np.zeros((4,4,4))
+        self.reset()
 
     def make_player(self,path):
         with open(f"{path}.json", 'r') as file:
@@ -45,3 +44,7 @@ class Play:
             return (i,j,k,"black won")
         else:
             return (i,j,k,"open")
+
+    def reset(self):
+        self.white = np.zeros((4,4,4))
+        self.black = np.zeros((4,4,4))

@@ -5,15 +5,11 @@ import random
 from collections import deque
 import json
 
-from keras.models import Sequential
-from keras.layers.core import Dense, Flatten
-from keras.optimizers import Adam
-import h5py
+import tensorflow as tf
 
-BOARDX = 4
-BOARDY = 4
-BOARDZ = 4
-ACTIONS = 1
+from tensorflow.python.keras import Model
+from tensorflow.python.keras.layers import Input, Dense, Conv3D, BatchNormalization, Activation, Concatenate, Flatten
+from tensorflow.python.keras.optimizers import Adam
 
 GAMMA = 0.90
 OBSERVE = 3200
@@ -25,15 +21,34 @@ BATCH = 1000
 LEARNING_RATE = 1e-4
 
 def make_model():
-    model = Sequential()
-    model.add(Dense(64, activation='tanh', input_shape=(BOARDX,BOARDY,BOARDZ,3)))
-    model.add(Flatten())
-    model.add(Dense(512, activation='tanh'))
-    model.add(Dense(1024, activation='tanh'))
-    model.add(Dense(512, activation='tanh'))
-    model.add(Dense(64, activation='tanh'))
-    model.add(Dense(ACTIONS))
 
+    num_4x1 = 32
+    num_4x4 = 64
+
+    inputs = Input(shape=(4,4,4,3))
+    t = inputs
+
+    t144 = Flatten()(Conv3D(num_4x1,(4,1,1),padding='valid')(t))
+    t414 = Flatten()(Conv3D(num_4x1,(1,4,1),padding='valid')(t))
+    t441 = Flatten()(Conv3D(num_4x1,(1,1,4),padding='valid')(t))
+
+
+    t114 = Flatten()(Conv3D(num_4x4,(4,4,1),padding='valid')(t))
+    t141 = Flatten()(Conv3D(num_4x4,(4,1,4),padding='valid')(t))
+    t411 = Flatten()(Conv3D(num_4x4,(1,4,4),padding='valid')(t))
+
+    t = Concatenate()([t144,t414,t441,t114,t141,t411])
+    t = BatchNormalization()(t)
+    t = Activation('relu')(t)
+
+    t = Dense(2048)(t)
+    t = Activation('relu')(t)
+
+    t = Dense(1)(t)
+    t = Activation('tanh')(t)
+
+
+    model = Model(inputs,t)
     adam = Adam(lr=LEARNING_RATE)
     model.compile(loss='mse',optimizer=adam)
     return model
@@ -93,7 +108,7 @@ def train_network(model):
                 outfile.write(model.to_json())
 
 def train_on_batch(model,minibatch):
-    inputs = np.zeros((BATCH,BOARDX,BOARDY,BOARDZ,3))
+    inputs = np.zeros((BATCH,4,4,4,3))
     targets = np.zeros((BATCH,1))
     for i in range(0, len(minibatch)):
         action = minibatch[i][0]
