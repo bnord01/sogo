@@ -13,16 +13,16 @@ class MCTS(object):
     '''Node in an Monte Carlo Tree Search'''
 
     def __init__(self, action: int, probability: float, value: float):
-        self.state: np.ndarray
+        self.state: np.ndarray = None
         self.visited: int = 1
         self.action: int = action
         self.probability: float = probability
         self.value: float = value
-        self.children: List[MCTS]
+        self.children: List[MCTS] = None
 
     def upper_confidence_bound(self) -> float:
         'Computes the upper confidence bound used during search'
-        return self.value/self.visited + self.probability/(1+self.visited)
+        return self.value/self.visited + self.probability/(1+self.visited)*100
 
     def expand(self, state: np.ndarray, predictions: np.ndarray):
         '''Expands this node, setting it's state and children'''
@@ -39,7 +39,8 @@ class MCTS(object):
 
 def search(root: MCTS) -> Deque[MCTS]:
     '''Find the '''
-    path: Deque[MCTS] = deque(root)
+    path: Deque[MCTS] = deque()
+    path.append(root)
     while root.children:
         high_child = None
         max_bound = -math.inf
