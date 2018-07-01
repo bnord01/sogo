@@ -13,5 +13,5 @@ class MCTSTest(unittest.TestCase):
         def make_step(state, action):
             return np.zeros(5)
 
-        print(perform_mcts(None, 1000, predict, make_step))
+        print(perform_mcts(None, 5000, predict, make_step))
         self.assertEqual(4, 4)

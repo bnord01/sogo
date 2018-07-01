@@ -48,8 +48,8 @@ def search(root: MCTS) -> Deque[MCTS]:
             if child.upper_confidence_bound() > max_bound:
                 high_child = child
                 max_bound = child.upper_confidence_bound()
-            root = high_child
-            path.append(root)
+        root = high_child
+        path.append(root)
     return path
 
 
