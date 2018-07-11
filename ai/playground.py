@@ -182,6 +182,10 @@ def fulldiaggreater3(x):
     return K.any(x)
 
 
+def is_winning(x):
+    return K.any(K.stack([greater3(x), diaggreater3(x), fulldiaggreater3(x)]))
+
+
 inputs = Input(shape=(4, 4, 4), dtype='int32')
 
 assert Model(inputs, Lambda(greater3)(inputs)).predict(DIAG12)[0]

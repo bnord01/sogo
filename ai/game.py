@@ -1,10 +1,10 @@
+'Package for games'
 from typing import TypeVar, Generic
 S = TypeVar('S')
 
 
 class Game(Generic[S]):
-    STATE: type
-
+    'Class representing a game.'
     def initial_state(self) -> S:
         'Returns the initial state of the game.'
         pass
