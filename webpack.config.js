@@ -19,7 +19,9 @@ module.exports = {
                     {
                         loader: 'babel-loader',
                         options: {
-                            presets: ['env']
+                            presets: [
+                                ['@babel/preset-env']
+                            ]
                         }
                     }
                 ]
@@ -50,6 +52,6 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: 'app/index.html'
         }),
-        new CleanWebpackPlugin(['dist'])
+        new CleanWebpackPlugin()
     ]
 };
