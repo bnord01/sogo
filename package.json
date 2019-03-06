@@ -5,8 +5,7 @@
   "private": true,
   "scripts": {
     "start": "node --harmony server.js",
-    "postinstall": "webpack --mode production",
-    "build": "webpack --mode development",
+    "build": "webpack --mode production",
     "watch": "webpack --progress --watch --mode development",
     "server": "webpack-dev-server --open"
   },
@@ -32,5 +31,6 @@
     "webpack": "^4.2.0",
     "webpack-cli": "^3.2.3",
     "webpack-dev-server": "^3.2.1"
-  }
+  },
+  "heroku-run-build-script": true
 }
