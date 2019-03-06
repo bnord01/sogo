@@ -7,7 +7,7 @@
     "start": "node --harmony server.js",
     "postinstall": "webpack --mode production",
     "build": "webpack --mode development",
-    "watch": "webpack --progress --watch",
+    "watch": "webpack --progress --watch --mode development",
     "server": "webpack-dev-server --open"
   },
   "author": "Benedikt Nordhoff (bnord01@gmail.com)",

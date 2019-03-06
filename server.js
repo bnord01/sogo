@@ -20,12 +20,16 @@ var ready = new Promise(function willListen(resolve, reject) {
 });
 
 ready.then(server => {
-    var io = socket(server);
+    var io = socket(server); 
     io.on('connection',socket => {
         console.log(`Connection established to ${socket.id}`)
-        socket.on('move',data => {
+        socket.on('move', data => {
             console.log(`Move by ${socket.id} : ${JSON.stringify(data)}`)
             socket.broadcast.emit('move',data)
+        })
+        socket.on('reset', data => {
+            console.log(`Reset by ${socket.id} : ${JSON.stringify(data)}`)
+            socket.broadcast.emit('reset', data)
         })
     })
 })

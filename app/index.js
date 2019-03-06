@@ -14,18 +14,20 @@ var io = require('socket.io-client')
 var socket = io.connect(location.origin)
 socket.on('move', move => {
 	var i = move.i,
-		j = move.j,
-		n = move.n;
-	board[i][j] = n + 1
+		j = move.j;
+	var n = board[i][j];
+	board[i][j] = n + 1;
 	turn = 1 - turn;
-	createBall(i, j, n)
+	createBall(i, j, n);
 })
+
+socket.on('reset', resetBoard)
 
 
 var container, controls;
 var camera, scene, raycaster, renderer;
 var lightwood, darkwood, reddarkwood, wood;
-var poles, board, turn;
+var poles, board, turn, balls;
 
 var mouse, mouse_moved, mouse_valid;
 var is_touch;
@@ -81,6 +83,7 @@ function init() {
 	board = [];
 	poles = [];
 	turn = 1;
+	balls = [];
 
 
 	for (var i = 0; i <= 3; i++) {
@@ -119,6 +122,8 @@ function init() {
 	document.addEventListener('touchcancel', onDocumentTouchCancel, false);
 
 	window.addEventListener('resize', onWindowResize, false);
+
+	socket.emit('reset', 'new web client')
 
 } // End init()
 
@@ -181,8 +186,7 @@ function makeMove() {
 			var n = board[i][j]
 			socket.emit('move', {
 				i: i,
-				j: j,
-				n: n
+				j: j
 			})
 			turn = 1 - turn
 			board[i][j]= n + 1
@@ -200,8 +204,23 @@ function createBall(i, j, n) {
 	ball.position.set(-150 + 100 * i, -150 + 34 + 68 * n, -150 + 100 * j);
 	ball.rotation.set(Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI, Math.random() * 2 * Math.PI);
 	scene.add(ball);
+    balls.push(ball);
+    
 }
 
+function resetBoard() {
+	turn = 1
+	for (var i = 0; i <= 3; i++) {
+		board[i] = []
+		for (var j = 0; j <= 3; j++) {
+			board[i][j] = 0;
+		}
+	}
+
+	balls.forEach(ball => {scene.remove(ball)})
+	balls = []
+
+}
 
 function animate() {
 	requestAnimationFrame(animate);
