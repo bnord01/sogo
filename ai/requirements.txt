@@ -1,0 +1,4 @@
+numpy==1.20.1
+keras==2.6.0
+socketIO_client_nexus==0.7.6
+tensorflow==2.6.0

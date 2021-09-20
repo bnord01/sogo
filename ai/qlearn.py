@@ -1,3 +1,4 @@
+import os
 from sogo import valid_moves, move_wins
 
 import numpy as np
@@ -5,11 +6,10 @@ import random
 from collections import deque
 import pickle
 
-import tensorflow as tf
 
-from tensorflow.python.keras import Model
-from tensorflow.python.keras.layers import Input, Dense, Conv3D, BatchNormalization, Activation, Concatenate, Flatten
-from tensorflow.python.keras.optimizers import Adam
+from keras import Model
+from keras.layers import Input, Dense, Conv3D, BatchNormalization, Activation, Concatenate, Flatten
+from keras.optimizers import adam_v2
 
 GAMMA = 0.90
 OBSERVE = 3200
@@ -19,6 +19,7 @@ INITIAL_EPSILON = 0.1
 REPLAY_MEMORY = 50000
 BATCH = 1000
 LEARNING_RATE = 1e-4
+SAVE_EVERY = 10000
 
 
 def make_model():
@@ -53,8 +54,8 @@ def make_model():
     t = Activation('tanh')(t)
 
     model = Model(inputs, t)
-    model.load_weights("models/model50.h5")
-    adam = Adam(lr=LEARNING_RATE)
+    #model.load_weights("models/model50.h5")
+    adam = adam_v2.Adam(learning_rate=LEARNING_RATE)
     model.compile(loss='mse', optimizer=adam)
     return model
 
@@ -75,7 +76,7 @@ def train_network(model):
             action_index = np.argmax(qs)
         else:
             qs = model.predict(actions).flatten()
-            print(qs)
+            #print(qs)
             ps = qs + 1
             ps = ps/sum(ps)
             action_index = np.random.choice(range(len(ps)), p=ps)
@@ -114,14 +115,18 @@ def train_network(model):
             round = round + 1
         t = t + 1
 
-        if t % 10000 == 0:
-            print("Saving weights")
-            model.save_weights(f"models/model{int(t/1000)}.h5", overwrite=True)
-            with open(f"models/model{int(t/1000)}.json", "w") as outfile:
+        if t % SAVE_EVERY == 0:
+            print(f"Saving weights after {t} rounds to: models/model{int(t/SAVE_EVERY)}.h5")
+            if not os.path.exists("models"):
+                os.makedirs("models")
+            model.save_weights(f"models/model{int(t/SAVE_EVERY)}.h5", overwrite=True)
+            with open(f"models/model{int(t/SAVE_EVERY)}.json", "w") as outfile:
                 outfile.write(model.to_json())
 
         if t % REPLAY_MEMORY == 0:
-            print("Saving runs")
+            print(f"Saving runs after {t} rounds to: data/runs{t/REPLAY_MEMORY}.bin")
+            if not os.path.exists("data"):
+                os.makedirs("data")
             with open(f"data/runs{t/REPLAY_MEMORY}.bin", "w") as outfile:
                 pickle.dump(D, outfile)
 

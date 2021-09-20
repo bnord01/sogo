@@ -1,67 +1,39 @@
 import numpy as np
 
-from game import Game
 
-from tf_sogo import evaluate
+def valid_moves(white, black):
+    moves = []
+    rewards = []
+    for i in range(0, 4):
+        for j in range(0, 4):
+            k = int(sum(white[i, j]) + sum(black[i, j]))
+            if k < 4:
+                move = np.zeros((4, 4, 4))
+                move[i, j, k] = 1
+                move = np.stack((white, black, move), axis=3)
+                moves.append(move)
+                rewards.append(move_wins(white, i, j, k))
+    if len(moves) > 0:
+        return np.stack(moves), rewards
+    else:
+        return np.zeros((0, 4, 4, 4, 3)), rewards
 
 
-class Sogo(Game[np.ndarray]):
-    @staticmethod
-    def action_x(num: int):
-        return num % 4
+directions = [np.array((i, j, k)) for i in [-1, 0, 1]
+              for j in [-1, 0, 1] for k in [-1, 0, 1]]
 
-    @staticmethod
-    def action_y(num: int):
-        return num // 4
 
-    @staticmethod
-    def action_z(state: np.ndarray, x: int, y: int):
-        z = 0
-        while state[x, y, z, 0] or state[x, y, z, 1]:
-            z += 1
-        return z
-
-    def initial_state(self) -> np.ndarray:
-        'Returns the initial state of the game.'
-        return np.zeros((4, 4, 4, 3), dtype=np.int32)
-
-    def num_actions(self) -> int:
-        'Returns the number of valid actions.'
-        return 17
-
-    def valid_action(self, state: np.ndarray, action: int) -> bool:
-        'Returns whether an action is valid in the given state or leads to the opponent winning.'
-        return action == 16 or \
-            not state[self.action_x(action), self.action_y(action), 3, 0] and \
-            not state[self.action_x(action), self.action_y(action), 3, 1]
-
-    def step(self, state: np.ndarray, action: int) -> np.ndarray:
-        'Performs a valid action and returns the resulting state.'
-        new_state = np.copy(state)
-        player = state[0, 0, 0, 2]
-        new_state[:, :, :, 2] = 1 - player
-        if action < 16:
-            x = self.action_x(action)
-            y = self.action_y(action)
-            z = self.action_z(state, x, y)
-            new_state[x, y, z, player] = 1
-        return new_state
-
-    def winning_action(self, state: np.ndarray, action: int) -> bool:
-        'Returns whether a valid action leads to a winning state for the performing player.'
-        pass
-
-    def terminal_state(self, state: np.ndarray) -> bool:
-        'Returns whether a state is terminal.'
-        return np.sum(state[..., 0:2]) == 64 or not self.evaluate_state(state) == 0
-
-    def evaluate_state(self, state: np.ndarray) -> int:
-        'Returns -1 iff the current player won the game, 1 if the other player won the game or 0 otherwise.'        
-        player = state[0, 0, 0, 2]
-        if evaluate(state[np.newaxis, :, :, :, 0]):
-            return 1 if player else -1
-        if evaluate(state[np.newaxis, :, :, :, 1]):
-            return -1 if player else 1
-        return 0
-        
-        
+def move_wins(white, i, j, k):
+    x0 = np.array((i, j, k))
+    for d in directions:
+        for s in range(-3, 0):
+            n = 0
+            for t in range(s, s+4):
+                x = x0 + t*d
+                if t == 0:
+                    n = n + 1
+                elif min(x) > -1 and max(x) < 4:
+                    n = n + white[x[0], x[1], x[2]]
+            if n > 3:
+                return 1
+    return 0

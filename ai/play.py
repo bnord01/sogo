@@ -17,7 +17,8 @@ class Play:
         model.load_weights(f"{path}.h5")
         return model
 
-    def make_move(self, i, j, k):
+    def make_move(self, i, j):
+        k = int(sum(self.white[i, j]) + sum(self.black[i, j]))
         move = np.zeros((4, 4, 4))
         move[i, j, k] = 1
 

@@ -6,12 +6,12 @@ from collections import deque
 
 import json
 from keras import initializations
-from keras.initializations import normal, identity
+from keras.initializers import normal, identity
 from keras.models import model_from_json
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
-from keras.optimizers import SGD , Adam
+from keras.optimizers import SGD , adam_v2
 import tensorflow as tf
 
 BOARDX = 4
@@ -43,7 +43,7 @@ def buildmodel():
     model.add(Activation('relu'))
     model.add(Dense(ACTIONS))
 
-    adam = Adam(lr=LEARNING_RATE)
+    adam = adam_v2.Adam(lr=LEARNING_RATE)
     model.compile(loss='mse',optimizer=adam)
     print("We finished building the model")
     return model
@@ -74,7 +74,7 @@ def trainNetwork(model,args):
         epsilon = FINAL_EPSILON
         print ("Now we load weight")
         model.load_weights("model.h5")
-        adam = Adam(lr=LEARNING_RATE)
+        adam = adam_v2.Adam(lr=LEARNING_RATE)
         model.compile(loss='mse',optimizer=adam)
         print ("Weight load successfully")
     else:                       #We go to training mode
